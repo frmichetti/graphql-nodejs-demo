@@ -3,13 +3,24 @@ import * as graphqlHTTP from 'express-graphql'
 
 import schema from './graphql/schema';
 import db from './models'
+import { RequestedFields } from './graphql/ast/RequestedFields';
+import { DataLoaderFactory } from './graphql/dataloaders/DataLoaderFactory';
 
 class App {
      public express: express.Application;
+     private dataLoaderFactory: DataLoaderFactory;
+     private requestedFields: RequestedFields;
 
      constructor(){
          this.express = express();
-         this.middleware();
+         this.init();
+     }
+
+     private init(){
+        this.requestedFields = new RequestedFields();
+        /*Error: Cannot find module 'dataloader'*/
+        //this.dataLoaderFactory = new DataLoaderFactory(db);
+        this.middleware();
      }
 
      private middleware(): void {
@@ -21,7 +32,9 @@ class App {
          this.express.use('/graphql', 
             (req, res, next) => {
                 req['context'] = {};
-                req['context'].db = db;
+                req['context']['db'] = db;
+               // req['context']['dataloaders'] = this.dataLoaderFactory.getLoaders();
+                req['context']['requestedFields'] = this.requestedFields;
                 next();
             },
 
