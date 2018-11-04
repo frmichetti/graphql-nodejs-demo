@@ -1,4 +1,3 @@
-import * as graphqlFields from 'graphql-fields'
 import { GraphQLResolveInfo } from "graphql";
 import { DbConnection } from "../../../interfaces/DbConnectionInterface";
 import { PostInstance } from "../../../models/PostModel";
