@@ -12,11 +12,9 @@ import { DataLoaders } from "../../../interfaces/DataLoadersInterface";
 export const commentResolvers = {
     Comment: {
         user: (parent, args, {db, dataloaders: {userLoader}}: {db: DbConnection, dataloaders: DataLoaders}, info: GraphQLResolveInfo) => {
-                /*return db.User.findById(parent.get('user')).catch(handleError);*/
                 return userLoader.load(parent.get('user')).catch(handleError);
             },
         post: (parent, args, {db, dataloaders: {postLoader}}: {db: DbConnection, dataloaders: DataLoaders}, info: GraphQLResolveInfo) => {
-            /*return db.Post.findById(parent.get('post')).catch(handleError);*/
                 return postLoader.load(parent.get('post')).catch(handleError);
         },    
     },
@@ -24,7 +22,6 @@ export const commentResolvers = {
 
     Query: {
         commentsByPost: (parent, {postId, first = 10, offset = 0 }, {db, requestedFields}: {db: DbConnection, requestedFields: RequestedFields}, info: GraphQLResolveInfo) => {
-            console.log(postId);
             postId = parseInt(postId);
             return db.Comment.findAll({
                 where: {post: postId},
