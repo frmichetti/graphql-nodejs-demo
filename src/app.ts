@@ -19,15 +19,15 @@ class App {
 
      private init(){
         this.requestedFields = new RequestedFields();
-        this.dataLoaderFactory = new DataLoaderFactory(db);
+        this.dataLoaderFactory = new DataLoaderFactory(db, this.requestedFields);
         this.middleware();
      }
 
      private middleware(): void {
 
-        // this.express.use('/', (req: express.Request, res: express.Response, next: express.NextFunction) => {
-        //        res.send({hello: 'hello world!'})
-        // });
+         //this.express.use('/', (req: express.Request, res: express.Response, next: express.NextFunction) => {
+         //       res.send({hello: 'hello world!'})
+         //});
 
          this.express.use('/graphql', 
 

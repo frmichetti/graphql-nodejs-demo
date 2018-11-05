@@ -3,31 +3,31 @@ import { DbConnection } from "../../../interfaces/DbConnectionInterface";
 import { Transaction } from "sequelize";
 import { CommentInstance } from "../../../models/CommentModel";
 import { handleError, throwError } from "../../../utils/utils";
-import { RequestedFields } from "../../ast/RequestedFields";
 import { compose } from "../../composable/composable.resolver";
 import { authResolvers } from "../../composable/auth.resolver";
 import { AuthUser } from "../../../interfaces/AuthUserInterface";
 import { DataLoaders } from "../../../interfaces/DataLoadersInterface";
+import { ResolverContext } from "../../../interfaces/ResolverContextInterface";
 
 export const commentResolvers = {
     Comment: {
         user: (parent, args, {db, dataloaders: {userLoader}}: {db: DbConnection, dataloaders: DataLoaders}, info: GraphQLResolveInfo) => {
-                return userLoader.load(parent.get('user')).catch(handleError);
+                return userLoader.load({key: parent.get('user'), info }).catch(handleError);
             },
         post: (parent, args, {db, dataloaders: {postLoader}}: {db: DbConnection, dataloaders: DataLoaders}, info: GraphQLResolveInfo) => {
-                return postLoader.load(parent.get('post')).catch(handleError);
+                return postLoader.load({key: parent.get('post'), info }).catch(handleError);
         },    
     },
         
 
     Query: {
-        commentsByPost: (parent, {postId, first = 10, offset = 0 }, {db, requestedFields}: {db: DbConnection, requestedFields: RequestedFields}, info: GraphQLResolveInfo) => {
+        commentsByPost: (parent, {postId, first = 10, offset = 0 }, context: ResolverContext, info: GraphQLResolveInfo) => {
             postId = parseInt(postId);
-            return db.Comment.findAll({
+            return context.db.Comment.findAll({
                 where: {post: postId},
                 limit: first,
                 offset: offset,
-                attributes: requestedFields.getFields(info)
+                attributes: context.requestedFields.getFields(info)
             }).catch(handleError);
         }
     },
