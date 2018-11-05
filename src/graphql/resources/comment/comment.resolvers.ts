@@ -7,20 +7,24 @@ import { RequestedFields } from "../../ast/RequestedFields";
 import { compose } from "../../composable/composable.resolver";
 import { authResolvers } from "../../composable/auth.resolver";
 import { AuthUser } from "../../../interfaces/AuthUserInterface";
+import { DataLoaders } from "../../../interfaces/DataLoadersInterface";
 
 export const commentResolvers = {
     Comment: {
-        user: (parent, args, {db}: {db: DbConnection}, info: GraphQLResolveInfo) => {
-                return db.User.findById(parent.get('user')).catch(handleError);
+        user: (parent, args, {db, dataloaders: {userLoader}}: {db: DbConnection, dataloaders: DataLoaders}, info: GraphQLResolveInfo) => {
+                /*return db.User.findById(parent.get('user')).catch(handleError);*/
+                return userLoader.load(parent.get('user')).catch(handleError);
             },
-        post: (parent, args, {db}: {db: DbConnection}, info: GraphQLResolveInfo) => {
-            return db.Post.findById(parent.get('post')).catch(handleError);
+        post: (parent, args, {db, dataloaders: {postLoader}}: {db: DbConnection, dataloaders: DataLoaders}, info: GraphQLResolveInfo) => {
+            /*return db.Post.findById(parent.get('post')).catch(handleError);*/
+                return postLoader.load(parent.get('post')).catch(handleError);
         },    
     },
         
 
     Query: {
         commentsByPost: (parent, {postId, first = 10, offset = 0 }, {db, requestedFields}: {db: DbConnection, requestedFields: RequestedFields}, info: GraphQLResolveInfo) => {
+            console.log(postId);
             postId = parseInt(postId);
             return db.Comment.findAll({
                 where: {post: postId},

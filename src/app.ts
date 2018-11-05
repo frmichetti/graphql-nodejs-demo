@@ -19,8 +19,7 @@ class App {
 
      private init(){
         this.requestedFields = new RequestedFields();
-        /*Error: Cannot find module 'dataloader'*/
-        //this.dataLoaderFactory = new DataLoaderFactory(db);
+        this.dataLoaderFactory = new DataLoaderFactory(db);
         this.middleware();
      }
 
@@ -36,7 +35,7 @@ class App {
 
             (req, res, next) => {
                 req['context']['db'] = db;
-               // req['context']['dataloaders'] = this.dataLoaderFactory.getLoaders();
+                req['context']['dataloaders'] = this.dataLoaderFactory.getLoaders();
                 req['context']['requestedFields'] = this.requestedFields;
                 next();
             },

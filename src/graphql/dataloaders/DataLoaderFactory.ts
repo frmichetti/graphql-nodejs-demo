@@ -1,4 +1,4 @@
-import * as DataLoader from 'dataloader'
+import * as DataLoader from 'dataloader';
 import { DbConnection } from "../../interfaces/DbConnectionInterface";
 import { DataLoaders } from "../../interfaces/DataLoadersInterface";
 import { UserLoader } from "./UserLoader";

@@ -7,12 +7,13 @@ import { RequestedFields } from '../../ast/RequestedFields';
 import { compose } from "../../composable/composable.resolver";
 import { authResolvers } from "../../composable/auth.resolver";
 import { AuthUser } from "../../../interfaces/AuthUserInterface";
+import { DataLoaders } from "../../../interfaces/DataLoadersInterface";
 
 export const postResolvers = {
 
     Post: {
-        author: (parent, args, {db}: {db: DbConnection}, info: GraphQLResolveInfo) => {
-            return db.User.findById(parent.get('author')).catch(handleError);
+        author: (parent, args, {db, dataloaders: {userLoader}}: {db: DbConnection, dataloaders: DataLoaders}, info: GraphQLResolveInfo) => {
+            return userLoader.load(parent.get('author')).catch(handleError);
         },
         comments: (parent, {first = 10, offset = 0 }, {db, requestedFields}: {db: DbConnection, requestedFields: RequestedFields}, info: GraphQLResolveInfo) => {
             return db.Comment.findAll({
