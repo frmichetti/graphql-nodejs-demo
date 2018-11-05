@@ -5,6 +5,7 @@ import schema from './graphql/schema';
 import db from './models'
 import { RequestedFields } from './graphql/ast/RequestedFields';
 import { DataLoaderFactory } from './graphql/dataloaders/DataLoaderFactory';
+import { extractJwtMiddleware } from './middlewares/extract-jwt.middleware';
 
 class App {
      public express: express.Application;
@@ -30,8 +31,10 @@ class App {
         // });
 
          this.express.use('/graphql', 
+
+         extractJwtMiddleware(),
+
             (req, res, next) => {
-                req['context'] = {};
                 req['context']['db'] = db;
                // req['context']['dataloaders'] = this.dataLoaderFactory.getLoaders();
                 req['context']['requestedFields'] = this.requestedFields;
