@@ -6,6 +6,7 @@ import { UserInstance } from "../../models/UserModel";
 import { PostLoader } from './PostLoader';
 import { RequestedFields } from '../ast/RequestedFields';
 import { DataLoaderParam } from '../../interfaces/DataLoaderParamInterface';
+import { PostInstance } from '../../models/PostModel';
 
 export class DataLoaderFactory {
 
@@ -20,7 +21,7 @@ export class DataLoaderFactory {
                 (params: DataLoaderParam<number>[]) => UserLoader.batchUsers(this.db.User, params, this.requestedFields),
                 {cacheKeyFn: (param: DataLoaderParam<number[]>) => {param.key}}
             ),
-            postLoader: new DataLoader<DataLoaderParam<number>, UserInstance>(
+            postLoader: new DataLoader<DataLoaderParam<number>, PostInstance>(
                 (params: DataLoaderParam<number>[]) => PostLoader.batchPosts(this.db.Post, params, this.requestedFields),
                 {cacheKeyFn: (param: DataLoaderParam<number[]>) => {param.key}}
             )

@@ -7,7 +7,7 @@ const postTypes = `
         createdAt: String!
         updateAt: String!
         author: User!
-        comments(first: Int, offset: Int): [Comment!]!
+        comments(limit: Int, offset: Int): [Comment!]!
     }
 
     input PostInput {
@@ -18,7 +18,7 @@ const postTypes = `
 `;
 
 const postQueries = `
-    posts(first: Int, offset: Int): [Post!]!
+    posts(limit: Int, offset: Int): [Post!]!
     post(id: ID!): Post
 `;
 

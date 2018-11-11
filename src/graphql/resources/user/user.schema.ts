@@ -8,7 +8,7 @@ const userTypes = `
         photo: String
         createdAt: String!
         updatedAt: String!
-        posts(first: Int, offset: Int): [Post!]!
+        posts(limit: Int, offset: Int): [Post!]!
     }
 
     input UserCreateInput {
@@ -29,7 +29,7 @@ const userTypes = `
 `;
 
 const userQueries = `
-    users(first: Int, offset: Int): [User!]!
+    users(limit: Int, offset: Int): [User!]!
     user(id: ID!): User
     currentUser: User
 `;

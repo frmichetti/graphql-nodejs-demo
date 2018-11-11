@@ -1,8 +1,5 @@
 import { GraphQLResolveInfo } from "graphql";
-import { DbConnection } from "../../../interfaces/DbConnectionInterface";
-import { UserInstance } from "../../../models/UserModel";
-import { Transaction } from "sequelize";
-import { handleError, throwError } from "../../../utils/utils";
+import { throwError } from "../../../utils/utils";
 import { compose } from "../../composable/composable.resolver";
 import { authResolvers } from "../../composable/auth.resolver";
 import { ResolverContext } from "../../../interfaces/ResolverContextInterface";
@@ -10,77 +7,100 @@ import { ResolverContext } from "../../../interfaces/ResolverContextInterface";
 export const userResolvers = {
 
     User: {
-        posts: (parent, {first = 10, offset = 0 }, context: ResolverContext, info: GraphQLResolveInfo) => {
-           return context.db.Post.findAll({
-               where: {author: parent.get('id')},
-               limit: first,
-               offset: offset,
-               attributes: context.requestedFields.getFields(info, {keep: ['id'], exclude: ['comments']})
-           }).catch(handleError);
+        posts: async (parent, {limit = 10, offset = 0 }, context: ResolverContext, info: GraphQLResolveInfo) => {
+            try{
+                const post = await context.db.Post.findAll({
+                    where: {author: parent.get('id')},
+                    limit: limit,
+                    offset: offset,
+                    attributes: context.requestedFields.getFields(info, {keep: ['id'], exclude: ['comments']})
+                });
+                return post;
+            }catch(error){
+                console.error(error);
+            }
         }
     },
 
     Query: {
-        users: (parent, {first = 10, offset = 0 }, context: ResolverContext, info: GraphQLResolveInfo) => {
-            return context.db.User.findAll({
-                limit: first,
-                offset: offset,
-                attributes: context.requestedFields.getFields(info, {keep: ['id'], exclude: ['posts']})
-            }).catch(handleError);
+        users: async (parent, {limit = 10, offset = 0 }, context: ResolverContext, info: GraphQLResolveInfo) => {
+            try {
+                const users = await context.db.User.findAll({
+                    limit: limit,
+                    offset: offset,
+                    attributes: context.requestedFields.getFields(info, {keep: ['id'], exclude: ['posts']})
+                });
+                return users;
+            } catch (error) {
+                console.error(error);
+            }
         },
 
-        user: (parent, {id}, context: ResolverContext, info: GraphQLResolveInfo) => {
-            id = parseInt(id);
-            return context.db.User.findById(id, {
-                attributes: context.requestedFields.getFields(info, {keep: ['id'], exclude: ['posts']})
-            })
-            .then((user: UserInstance) => {
+        user: async (parent, {id}, context: ResolverContext, info: GraphQLResolveInfo) => {
+
+            try {
+                id = parseInt(id);
+
+                const user = await context.db.User.findById(id, {
+                    attributes: context.requestedFields.getFields(info, {keep: ['id'], exclude: ['posts']})
+                });
                 throwError(!user, `User with id: ${id} not found!`);
                 return user;
-            }).catch(handleError);
+            } catch (error) {
+                console.error(error);
+            }         
         },
-        currentUser: compose(...authResolvers)((parent, args, context: ResolverContext, info: GraphQLResolveInfo) => {
-            return context.db.User.findById(context.authUser.id)
-            .then((user: UserInstance) => {
+        currentUser: compose(...authResolvers)(async (parent, args, context: ResolverContext, info: GraphQLResolveInfo) => {
+            try {
+                const user = await context.db.User.findById(context.authUser.id);
                 throwError(!user, `User with id: ${context.authUser.id} not found!`);
                 return user;
-            }).catch(handleError);
+            }
+            catch (error) {
+                console.error(error);
+            }
         }),
 
     },
     Mutation: {
-        createUser: (parent, {input}, {db}: {db: DbConnection}, info: GraphQLResolveInfo) => {
-           return db.sequelize.transaction((t: Transaction) => {
-               return db.User.create(input, {transaction: t});
-           }).catch(handleError);
+        createUser: async (parent, {input}, context: ResolverContext, info: GraphQLResolveInfo) => {
+            try{
+                return await context.db.User.create(input);
+            }catch(error){
+                console.error(error);
+            }
         },
-        updateUser: compose(...authResolvers)((parent, {input}, context: ResolverContext, info: GraphQLResolveInfo) => {
-           return context.db.sequelize.transaction((t: Transaction) => {
-               return context.db.User.findById(context.authUser.id)
-                        .then((user: UserInstance) => {
-                            throwError(!user, `User with id: ${context.authUser.id} not found!`);
-                            return user.update(input, {transaction: t});
-                        });
-           }).catch(handleError);
+        updateUser: compose(...authResolvers)(async (parent, {input}, context: ResolverContext, info: GraphQLResolveInfo) => {
+           try {
+               const user = await context.db.User.findById(context.authUser.id);
+               throwError(!user, `User with id: ${context.authUser.id} not found!`);
+               return await user.update(input);
+            }
+            catch (error) {
+                console.error(error);
+            }
          }),
-         updateUserPassword: compose(...authResolvers)((parent, {input}, context: ResolverContext, info: GraphQLResolveInfo) => {
-            return context.db.sequelize.transaction((t: Transaction) => {
-                return context.db.User.findById(context.authUser.id)
-                         .then((user: UserInstance) => {
-                             throwError(!user, `User with id: ${context.authUser.id} not found!`);
-                             return user.update(input, {transaction: t})
-                             .then((user: UserInstance) => !!user);
-                         });
-            }).catch(handleError);
+         updateUserPassword: compose(...authResolvers)(async (parent, {input}, context: ResolverContext, info: GraphQLResolveInfo) => {
+            try {
+                const user = await context.db.User.findById(context.authUser.id);
+                throwError(!user, `User with id: ${context.authUser.id} not found!`);
+                await user.update(input);
+                return !!user;                         
+             }
+             catch (error) {
+                console.error(error);
+             }
           }),
-          deleteUser: compose(...authResolvers)((parent, args, context: ResolverContext, info: GraphQLResolveInfo) => {
-            return context.db.sequelize.transaction((t: Transaction) => {
-                return context.db.User.findById(context.authUser.id).then((user: UserInstance) => {
+          deleteUser: compose(...authResolvers)(async (parent, args, context: ResolverContext, info: GraphQLResolveInfo) => {
+            try {
+                    const user = await context.db.User.findById(context.authUser.id);
                     throwError(!user, `User with id: ${context.authUser.id} not found!`);
-                    return user.destroy({transaction: t})
-                        .then(user => true);
-                });
-            }).catch(handleError);
+                    user.destroy();
+                    return true;
+              }
+              catch (error) {
+                console.error(error);
+              }
            
           }),
     }

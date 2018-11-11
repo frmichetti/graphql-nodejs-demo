@@ -1,64 +1,71 @@
 import { GraphQLResolveInfo } from "graphql";
-import { DbConnection } from "../../../interfaces/DbConnectionInterface";
-import { Transaction } from "sequelize";
-import { CommentInstance } from "../../../models/CommentModel";
 import { handleError, throwError } from "../../../utils/utils";
 import { compose } from "../../composable/composable.resolver";
 import { authResolvers } from "../../composable/auth.resolver";
-import { AuthUser } from "../../../interfaces/AuthUserInterface";
-import { DataLoaders } from "../../../interfaces/DataLoadersInterface";
 import { ResolverContext } from "../../../interfaces/ResolverContextInterface";
 
 export const commentResolvers = {
     Comment: {
-        user: (parent, args, {db, dataloaders: {userLoader}}: {db: DbConnection, dataloaders: DataLoaders}, info: GraphQLResolveInfo) => {
-                return userLoader.load({key: parent.get('user'), info }).catch(handleError);
+        user: (parent, args, context: ResolverContext, info: GraphQLResolveInfo) => {
+                return context.dataloaders.userLoader.load({key: parent.get('user'), info }).catch(handleError);
             },
-        post: (parent, args, {db, dataloaders: {postLoader}}: {db: DbConnection, dataloaders: DataLoaders}, info: GraphQLResolveInfo) => {
-                return postLoader.load({key: parent.get('post'), info }).catch(handleError);
+        post: (parent, args, context: ResolverContext, info: GraphQLResolveInfo) => {
+                return context.dataloaders.postLoader.load({key: parent.get('post'), info }).catch(handleError);
         },    
     },
         
 
     Query: {
-        commentsByPost: (parent, {postId, first = 10, offset = 0 }, context: ResolverContext, info: GraphQLResolveInfo) => {
-            postId = parseInt(postId);
-            return context.db.Comment.findAll({
-                where: {post: postId},
-                limit: first,
-                offset: offset,
-                attributes: context.requestedFields.getFields(info)
-            }).catch(handleError);
+        commentsByPost: async (parent, {postId, limit = 10, offset = 0 }, context: ResolverContext, info: GraphQLResolveInfo) => {
+            try {
+                postId = parseInt(postId);
+                const comment = await context.db.Comment.findAll({
+                    where: {post: postId},
+                    limit: limit,
+                    offset: offset,
+                    attributes: context.requestedFields.getFields(info)
+                });
+                return comment;
+            } catch (error) {
+                console.error(error);
+            }
         }
     },
 
     Mutation: {
-        createComment: compose(...authResolvers)((parent, {input }, {db, authUser}: {db: DbConnection, authUser: AuthUser}, info: GraphQLResolveInfo) => {
-            input.user = authUser.id;
-            return db.sequelize.transaction((t: Transaction) => {
-                return db.Comment.create(input, {transaction: t})
-            }).catch(handleError);
+        createComment: compose(...authResolvers)(async (parent, { input }, context: ResolverContext, info: GraphQLResolveInfo) => {
+            try {
+                input.user = context.authUser.id;
+                return await context.db.Comment.create(input);
+            }
+            catch (error) {
+                console.error(error);
+            }
         }),
-        updateComment: compose(...authResolvers)((parent, {id, input }, {db, authUser}: {db: DbConnection, authUser: AuthUser}, info: GraphQLResolveInfo) => {
-            id = parseInt(id);
-            return db.sequelize.transaction((t: Transaction) => {
-                return db.Comment.findById(id).then((comment: CommentInstance) => {
-                    throwError(!comment, `Comment with id: ${id} not found!`);
-                    throwError(comment.get('user') != authUser.id, 'Unauthorized! You can only edit comment by yourself!');
-                    input.user = authUser.id;
-                    return comment.update(input, {transaction: t});
-                });
-            }).catch(handleError);
+        updateComment: compose(...authResolvers)(async (parent, { id, input }, context: ResolverContext, info: GraphQLResolveInfo) => {
+            try {
+                id = parseInt(id);
+                const comment = await context.db.Comment.findById(id);
+                throwError(!comment, `Comment with id: ${id} not found!`);
+                throwError(comment.get('user') != context.authUser.id, 'Unauthorized! You can only edit comment by yourself!');
+                input.user = context.authUser.id;
+                return await comment.update(input);
+            }
+            catch (error) {
+                console.error(error);
+            }
         }),
-        deleteComment: compose(...authResolvers)((parent, {id}, {db, authUser}: {db: DbConnection, authUser: AuthUser}, info: GraphQLResolveInfo) => {
-            id = parseInt(id);
-            return db.sequelize.transaction((t: Transaction) => {
-                return db.Comment.findById(id).then((comment: CommentInstance) => {
-                    throwError(!comment, `Comment with id: ${id} not found!`);
-                    throwError(comment.get('user') != authUser.id, 'You can only delete Comments created by yourself!');
-                    return comment.destroy({transaction: t}).then(comment => true);
-                });
-            }).catch(handleError);
+        deleteComment: compose(...authResolvers)(async (parent, { id }, context: ResolverContext, info: GraphQLResolveInfo) => {
+            try {
+                id = parseInt(id);
+                    const comment = await context.db.Comment.findById(id);
+                        throwError(!comment, `Comment with id: ${id} not found!`);
+                        throwError(comment.get('user') != context.authUser.id, 'You can only delete Comments created by yourself!');
+                        comment.destroy();
+                        return true;                    
+            }catch (error) {
+                console.error(error);
+            }
         }),
     }
 }       

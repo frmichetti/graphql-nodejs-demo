@@ -1,4 +1,4 @@
-import * as jwt from 'jsonwebtoken'
+import * as jwt from 'jsonwebtoken';
 import { DbConnection } from "../../../interfaces/DbConnectionInterface";
 import { UserInstance } from "../../../models/UserModel";
 import { JWT_SECRET } from '../../../utils/utils';
