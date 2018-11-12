@@ -18,6 +18,7 @@ export const userResolvers = {
                 return post;
             }catch(error){
                 console.error(error);
+                throwError(true, error.message);
             }
         }
     },
@@ -33,6 +34,7 @@ export const userResolvers = {
                 return users;
             } catch (error) {
                 console.error(error);
+                throwError(true, error.message);
             }
         },
 
@@ -48,6 +50,7 @@ export const userResolvers = {
                 return user;
             } catch (error) {
                 console.error(error);
+                throwError(true, error.message);
             }         
         },
         currentUser: compose(...authResolvers)(async (parent, args, context: ResolverContext, info: GraphQLResolveInfo) => {
@@ -58,6 +61,7 @@ export const userResolvers = {
             }
             catch (error) {
                 console.error(error);
+                throwError(true, error.message);
             }
         }),
 
@@ -68,6 +72,7 @@ export const userResolvers = {
                 return await context.db.User.create(input);
             }catch(error){
                 console.error(error);
+                throwError(true, error.message);
             }
         },
         updateUser: compose(...authResolvers)(async (parent, {input}, context: ResolverContext, info: GraphQLResolveInfo) => {
@@ -78,6 +83,7 @@ export const userResolvers = {
             }
             catch (error) {
                 console.error(error);
+                throwError(true, error.message);
             }
          }),
          updateUserPassword: compose(...authResolvers)(async (parent, {input}, context: ResolverContext, info: GraphQLResolveInfo) => {
@@ -89,6 +95,7 @@ export const userResolvers = {
              }
              catch (error) {
                 console.error(error);
+                throwError(true, error.message);
              }
           }),
           deleteUser: compose(...authResolvers)(async (parent, args, context: ResolverContext, info: GraphQLResolveInfo) => {
@@ -100,6 +107,7 @@ export const userResolvers = {
               }
               catch (error) {
                 console.error(error);
+                throwError(true, error.message);
               }
            
           }),

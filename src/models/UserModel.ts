@@ -1,5 +1,5 @@
 import * as Sequelize from "sequelize";
-import {genSalt, hashSync, compareSync, genSaltSync } from 'bcryptjs';
+import { hashSync, compareSync, genSaltSync } from 'bcryptjs';
 import { BaseModelInterface } from "../interfaces/BaseModelInterface";
 import { ModelsInterface } from "../interfaces/ModelsInterface";
 

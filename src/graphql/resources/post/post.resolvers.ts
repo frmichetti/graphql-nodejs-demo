@@ -21,6 +21,7 @@ export const postResolvers = {
                 return comments;
             }catch(error){
                 console.error(error);
+                throwError(true, error.message);
             }
         }
     },
@@ -36,6 +37,7 @@ export const postResolvers = {
                 return posts;
             }catch(error){
                 console.error(error);
+                throwError(true, error.message);
             }            
         },
         post: async (parent, {id}, context: ResolverContext, info: GraphQLResolveInfo) => {
@@ -49,6 +51,7 @@ export const postResolvers = {
             }
             catch (error) {
                 console.error(error);
+                throwError(true, error.message);
             }
         },
     },
@@ -60,6 +63,7 @@ export const postResolvers = {
             }
             catch (error) {
                 console.error(error);
+                throwError(true, error.message);
             }
         }),
         updatePost: compose(...authResolvers)(async (parent, {id, input}, context: ResolverContext, info: GraphQLResolveInfo) => {
@@ -74,6 +78,7 @@ export const postResolvers = {
                 
             }catch(error){
                 console.error(error);
+                throwError(true, error.message);
             }
          
         }),
@@ -88,6 +93,7 @@ export const postResolvers = {
             }
             catch (error) {
                 console.error(error);
+                throwError(true, error.message);
             }
         }),
     }

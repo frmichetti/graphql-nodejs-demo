@@ -28,6 +28,7 @@ export const commentResolvers = {
                 return comment;
             } catch (error) {
                 console.error(error);
+                throwError(true, error.message);
             }
         }
     },
@@ -40,6 +41,7 @@ export const commentResolvers = {
             }
             catch (error) {
                 console.error(error);
+                throwError(true, error.message);
             }
         }),
         updateComment: compose(...authResolvers)(async (parent, { id, input }, context: ResolverContext, info: GraphQLResolveInfo) => {
@@ -53,18 +55,20 @@ export const commentResolvers = {
             }
             catch (error) {
                 console.error(error);
+                throwError(true, error.message);
             }
         }),
         deleteComment: compose(...authResolvers)(async (parent, { id }, context: ResolverContext, info: GraphQLResolveInfo) => {
             try {
                 id = parseInt(id);
-                    const comment = await context.db.Comment.findById(id);
-                        throwError(!comment, `Comment with id: ${id} not found!`);
-                        throwError(comment.get('user') != context.authUser.id, 'You can only delete Comments created by yourself!');
-                        comment.destroy();
-                        return true;                    
+                const comment = await context.db.Comment.findById(id);
+                throwError(!comment, `Comment with id: ${id} not found!`);
+                throwError(comment.get('user') != context.authUser.id, 'You can only delete Comments created by yourself!');
+                comment.destroy();
+                return true;          
             }catch (error) {
                 console.error(error);
+                throwError(true, error.message);
             }
         }),
     }
